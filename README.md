@@ -70,6 +70,4 @@ Add a `LICENSE` file if you plan to open-source the project (MIT recommended for
 
 ---
 
-Built for learning and quick prototyping
-
-
+Built for learning and quick prototyping.
