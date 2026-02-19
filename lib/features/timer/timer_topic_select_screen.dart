@@ -6,6 +6,7 @@ import 'models/timer_models.dart';
 import 'widgets/exam_group_widget.dart';
 import 'widgets/start_footer.dart';
 import '../exams/widgets/exams_bottom_nav.dart';
+import '../../core/widgets/bottom_nav_bar.dart';
 
 class TimerTopicSelectScreen extends StatefulWidget {
   const TimerTopicSelectScreen({super.key});
@@ -160,7 +161,7 @@ class _TimerTopicSelectScreenState extends State<TimerTopicSelectScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const ExamsBottomNav(),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),//bottomNavigationBar: const ExamsBottomNav(),
     );
   }
 }
