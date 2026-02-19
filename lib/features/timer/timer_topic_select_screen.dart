@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/bottom_nav_bar.dart';
 import 'models/timer_models.dart';
 import 'widgets/exam_group_widget.dart';
 import 'widgets/start_footer.dart';
-import '../exams/widgets/exams_bottom_nav.dart';
 
 class TimerTopicSelectScreen extends StatefulWidget {
   const TimerTopicSelectScreen({super.key});
@@ -160,7 +160,7 @@ class _TimerTopicSelectScreenState extends State<TimerTopicSelectScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const ExamsBottomNav(),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
     );
   }
 }
