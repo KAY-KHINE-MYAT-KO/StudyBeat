@@ -17,7 +17,7 @@ class WelcomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                
+
                 // Icon with decorative circle and glow effect
                 Stack(
                   alignment: Alignment.center,
@@ -37,7 +37,7 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
+
                     // Main icon container with gradient
                     Container(
                       padding: const EdgeInsets.all(32),
@@ -45,10 +45,7 @@ class WelcomeScreen extends StatelessWidget {
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF1E3A5F),
-                            Color(0xFF2A4A6F),
-                          ],
+                          colors: [Color(0xFF1E3A5F), Color(0xFF2A4A6F)],
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
@@ -67,9 +64,9 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 48),
-                
+
                 // Title and subtitle
                 Column(
                   children: [
@@ -98,43 +95,71 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const Spacer(),
-                
-                // Get Started Button
-                GestureDetector(
-                  onTap: () {
-                    context.go('/dashboard');
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 48,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
+
+                // Sign In Button
+                SizedBox(
+                  width: double.infinity,
+                  child: GestureDetector(
+                    onTap: () => context.push('/login'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Text(
+                        'Sign In',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontFamily: 'Inter',
+                          letterSpacing: 0.3,
                         ),
-                      ],
-                    ),
-                    child: const Text(
-                      'Get Started',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        fontFamily: 'Inter',
-                        letterSpacing: 0.3,
                       ),
                     ),
                   ),
                 ),
-                
+
+                const SizedBox(height: 14),
+
+                // Create Account Button
+                SizedBox(
+                  width: double.infinity,
+                  child: GestureDetector(
+                    onTap: () => context.push('/sign-up'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: AppColors.primary, width: 2),
+                      ),
+                      child: const Text(
+                        'Create Account',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                          fontFamily: 'Inter',
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 48),
               ],
             ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../core/widgets/secondary_button.dart';
+import '../../core/providers/exam_provider.dart';
 import 'widgets/exam_fields.dart';
 import 'widgets/date_picker_field.dart';
 import 'widgets/topics_section.dart';
@@ -22,12 +24,15 @@ class _AddExamScreenState extends State<AddExamScreen> {
   DateTime? _selectedDate;
   final List<String> _topics = [];
   final _topicController = TextEditingController();
+  final _targetHoursController = TextEditingController(text: '10');
+  bool _isSaving = false;
 
   @override
   void dispose() {
     _examNameController.dispose();
     _subjectController.dispose();
     _topicController.dispose();
+    _targetHoursController.dispose();
     super.dispose();
   }
 
@@ -73,10 +78,31 @@ class _AddExamScreenState extends State<AddExamScreen> {
     });
   }
 
-  void _saveExam() {
-    if (_formKey.currentState!.validate()) {
-      // Save exam logic here
-      context.go('/exams');
+  Future<void> _saveExam() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedDate == null) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      await context.read<ExamProvider>().addExam(
+        name: _examNameController.text.trim(),
+        subject: _subjectController.text.trim(),
+        examDate: _selectedDate!,
+        topics: _topics,
+        targetStudyHours:
+            double.tryParse(_targetHoursController.text.trim()) ?? 10.0,
+      );
+
+      if (mounted) context.go('/exams');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save exam: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -106,7 +132,10 @@ class _AddExamScreenState extends State<AddExamScreen> {
                 const SizedBox(height: 20),
                 Text('Exam Date', style: AppTextStyles.h3),
                 const SizedBox(height: 8),
-                DatePickerField(selectedDate: _selectedDate, onTap: () => _selectDate(context)),
+                DatePickerField(
+                  selectedDate: _selectedDate,
+                  onTap: () => _selectDate(context),
+                ),
                 const SizedBox(height: 24),
                 TopicsSection(
                   topics: _topics,
@@ -114,8 +143,34 @@ class _AddExamScreenState extends State<AddExamScreen> {
                   onAddTopic: _addTopic,
                   onRemoveTopic: _removeTopic,
                 ),
+                const SizedBox(height: 20),
+                Text('Target Study Hours', style: AppTextStyles.h3),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _targetHoursController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. 10',
+                    suffixText: 'hours',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty)
+                      return 'Enter target hours';
+                    final hours = double.tryParse(value.trim());
+                    if (hours == null || hours <= 0)
+                      return 'Enter a valid number';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 32),
-                PrimaryButton(text: 'Save Exam', onPressed: _saveExam),
+                _isSaving
+                    ? const Center(child: CircularProgressIndicator())
+                    : PrimaryButton(text: 'Save Exam', onPressed: _saveExam),
                 const SizedBox(height: 12),
                 SecondaryButton(text: 'Cancel', onPressed: () => context.pop()),
               ],

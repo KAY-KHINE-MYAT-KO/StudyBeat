@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/widgets/app_bar_widget.dart';
-import '../../core/widgets/bottom_nav_bar.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../core/widgets/secondary_button.dart';
+import '../../core/providers/study_session_provider.dart';
 
 class TimerScreen extends StatefulWidget {
   final List<String> selectedTopics;
 
-  const TimerScreen({
-    super.key,
-    required this.selectedTopics,
-  });
+  const TimerScreen({super.key, required this.selectedTopics});
 
   @override
   State<TimerScreen> createState() => _TimerScreenState();
@@ -26,6 +22,7 @@ class _TimerScreenState extends State<TimerScreen> {
   int _minutes = 0;
   int _seconds = 0;
   bool _isRunning = false;
+  int _totalSeconds = 0;
 
   @override
   void dispose() {
@@ -48,6 +45,7 @@ class _TimerScreenState extends State<TimerScreen> {
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         setState(() {
           _seconds++;
+          _totalSeconds++;
           if (_seconds == 60) {
             _seconds = 0;
             _minutes++;
@@ -62,13 +60,26 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void _resetTimer() {
+    // Save session before resetting if there was any time
+    if (_totalSeconds > 0) {
+      _saveSession();
+    }
     _timer?.cancel();
     setState(() {
       _hours = 0;
       _minutes = 0;
       _seconds = 0;
+      _totalSeconds = 0;
       _isRunning = false;
     });
+  }
+
+  Future<void> _saveSession() async {
+    if (_totalSeconds <= 0) return;
+    await context.read<StudySessionProvider>().saveSession(
+      topics: widget.selectedTopics,
+      durationInSeconds: _totalSeconds,
+    );
   }
 
   String _formatTime(int value) {
@@ -78,7 +89,7 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBarWidget(title: 'StudyBeat'),
+      //appBar: const AppBarWidget(title: 'StudyBeat'),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -87,7 +98,7 @@ class _TimerScreenState extends State<TimerScreen> {
             children: [
               Text('Study Timer', style: AppTextStyles.h1),
               const SizedBox(height: 8),
-              
+
               // Selected Topics
               if (widget.selectedTopics.isNotEmpty) ...[
                 Text('Studying:', style: AppTextStyles.h3),
@@ -116,47 +127,35 @@ class _TimerScreenState extends State<TimerScreen> {
                   }).toList(),
                 ),
               ],
-              
+
               const SizedBox(height: 32),
-              
+
               // Timer Display Cards
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _TimeCard(
-                    value: _formatTime(_hours),
-                    label: 'Hours',
-                  ),
+                  _TimeCard(value: _formatTime(_hours), label: 'Hours'),
                   const SizedBox(width: 16),
-                  _TimeCard(
-                    value: _formatTime(_minutes),
-                    label: 'Minutes',
-                  ),
+                  _TimeCard(value: _formatTime(_minutes), label: 'Minutes'),
                   const SizedBox(width: 16),
-                  _TimeCard(
-                    value: _formatTime(_seconds),
-                    label: 'Seconds',
-                  ),
+                  _TimeCard(value: _formatTime(_seconds), label: 'Seconds'),
                 ],
               ),
-              
+
               const SizedBox(height: 48),
-              
+
               // Control Buttons
               PrimaryButton(
                 text: _isRunning ? 'Pause' : 'Start',
                 onPressed: _startPauseTimer,
               ),
-              
+
               const SizedBox(height: 12),
-              
-              SecondaryButton(
-                text: 'Reset',
-                onPressed: _resetTimer,
-              ),
-              
+
+              SecondaryButton(text: 'Save & Reset', onPressed: _resetTimer),
+
               const SizedBox(height: 24),
-              
+
               // Session Info
               Card(
                 child: Padding(
@@ -180,7 +179,10 @@ class _TimerScreenState extends State<TimerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Topics Covered', style: AppTextStyles.bodySmall),
+                          Text(
+                            'Topics Covered',
+                            style: AppTextStyles.bodySmall,
+                          ),
                           Text(
                             '${widget.selectedTopics.length}',
                             style: AppTextStyles.h3,
@@ -195,7 +197,6 @@ class _TimerScreenState extends State<TimerScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
     );
   }
 }
@@ -204,10 +205,7 @@ class _TimeCard extends StatelessWidget {
   final String value;
   final String label;
 
-  const _TimeCard({
-    required this.value,
-    required this.label,
-  });
+  const _TimeCard({required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -227,10 +225,7 @@ class _TimeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                label,
-                style: AppTextStyles.caption,
-              ),
+              Text(label, style: AppTextStyles.caption),
             ],
           ),
         ),

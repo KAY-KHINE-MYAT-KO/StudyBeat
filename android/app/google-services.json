@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "146650851554",
+    "project_id": "studybeat-a13ae",
+    "storage_bucket": "studybeat-a13ae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146650851554:android:6aa0baf2076ab1f337d6bb",
+        "android_client_info": {
+          "package_name": "com.example.studybeat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ27z0Nkk0rtqzMSWSFWkXCEWBozSIvg4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

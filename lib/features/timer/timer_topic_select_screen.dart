@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/providers/exam_provider.dart';
 import 'models/timer_models.dart';
 import 'widgets/exam_group_widget.dart';
 import 'widgets/start_footer.dart';
-import '../exams/widgets/exams_bottom_nav.dart';
-import '../../core/widgets/bottom_nav_bar.dart';
 
 class TimerTopicSelectScreen extends StatefulWidget {
   const TimerTopicSelectScreen({super.key});
@@ -16,53 +16,96 @@ class TimerTopicSelectScreen extends StatefulWidget {
 }
 
 class _TimerTopicSelectScreenState extends State<TimerTopicSelectScreen> {
-  bool _showWarning = false; // ✅ Warning state
+  bool _showWarning = false;
+  List<ExamGroup> _examGroups = [];
+  List<String> _lastExamIds = [];
 
-  final List<ExamGroup> _exams = [
-    ExamGroup(
-      id: 1,
-      name: 'Physics Midterm',
-      expanded: false, // ✅ Collapsed by default
-      topics: [
-        TimerTopic(id: 1, name: 'Optics'),
-        TimerTopic(id: 2, name: 'Thermodynamics'),
-      ],
-    ),
-    ExamGroup(
-      id: 2,
-      name: 'Math Final',
-      expanded: false, // ✅ Collapsed by default
-      topics: [
-        TimerTopic(id: 3, name: 'Calculus'),
-        TimerTopic(id: 4, name: 'Linear Algebra'),
-      ],
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncExamGroups();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncExamGroups();
+  }
+
+  void _syncExamGroups() {
+    final exams = context.read<ExamProvider>().exams;
+    final currentIds = exams.map((e) => e.id).toList();
+
+    // Only rebuild if the exam list actually changed
+    if (_listEquals(currentIds, _lastExamIds)) return;
+    _lastExamIds = currentIds;
+
+    // Preserve existing selection state
+    final selectedTopicNames = <String>{};
+    for (final group in _examGroups) {
+      for (final topic in group.topics) {
+        if (topic.selected)
+          selectedTopicNames.add('${group.name}::${topic.name}');
+      }
+    }
+
+    setState(() {
+      _examGroups = exams.asMap().entries.map((entry) {
+        return ExamGroup(
+          id: entry.key + 1,
+          name: entry.value.name,
+          expanded: _examGroups.length > entry.key
+              ? _examGroups[entry.key].expanded
+              : false,
+          topics: entry.value.topics.asMap().entries.map((topicEntry) {
+            final key = '${entry.value.name}::${topicEntry.value}';
+            return TimerTopic(
+              id: entry.key * 100 + topicEntry.key + 1,
+              name: topicEntry.value,
+              selected: selectedTopicNames.contains(key),
+            );
+          }).toList(),
+        );
+      }).toList();
+    });
+  }
+
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
   void _toggleExam(int examId) {
     setState(() {
-      final index = _exams.indexWhere((e) => e.id == examId);
+      final index = _examGroups.indexWhere((e) => e.id == examId);
       if (index != -1) {
-        _exams[index].expanded = !_exams[index].expanded;
+        _examGroups[index].expanded = !_examGroups[index].expanded;
       }
     });
   }
 
   void _toggleTopic(int examId, int topicId) {
     setState(() {
-      final examIndex = _exams.indexWhere((e) => e.id == examId);
+      final examIndex = _examGroups.indexWhere((e) => e.id == examId);
       if (examIndex != -1) {
-        final topicIndex = _exams[examIndex].topics.indexWhere((t) => t.id == topicId);
+        final topicIndex = _examGroups[examIndex].topics.indexWhere(
+          (t) => t.id == topicId,
+        );
         if (topicIndex != -1) {
-          _exams[examIndex].topics[topicIndex].selected = 
-              !_exams[examIndex].topics[topicIndex].selected;
+          _examGroups[examIndex].topics[topicIndex].selected =
+              !_examGroups[examIndex].topics[topicIndex].selected;
         }
       }
     });
   }
 
   void _handleStartStudying() {
-    final selectedTopics = _exams
+    final selectedTopics = _examGroups
         .expand((exam) => exam.topics)
         .where((topic) => topic.selected)
         .map((topic) => topic.name)
@@ -92,21 +135,6 @@ class _TimerTopicSelectScreenState extends State<TimerTopicSelectScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Center(
-          child: Text(
-            'StudyBeat',
-            style: AppTextStyles.appBarTitle.copyWith(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ),
       body: Container(
         color: AppColors.background,
         child: Column(
@@ -142,13 +170,25 @@ class _TimerTopicSelectScreenState extends State<TimerTopicSelectScreen> {
                       const SizedBox(height: 24),
 
                       // Exams List
-                      ..._exams.map((exam) {
-                        return ExamGroupWidget(
-                          exam: exam,
-                          onToggle: () => _toggleExam(exam.id),
-                          onToggleTopic: (topicId) => _toggleTopic(exam.id, topicId),
-                        );
-                      }).toList(),
+                      if (_examGroups.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Text(
+                              'No exams yet. Add an exam first!',
+                              style: AppTextStyles.bodySmall,
+                            ),
+                          ),
+                        )
+                      else
+                        ..._examGroups.map((exam) {
+                          return ExamGroupWidget(
+                            exam: exam,
+                            onToggle: () => _toggleExam(exam.id),
+                            onToggleTopic: (topicId) =>
+                                _toggleTopic(exam.id, topicId),
+                          );
+                        }).toList(),
 
                       const SizedBox(height: 80),
                     ],
@@ -157,11 +197,13 @@ class _TimerTopicSelectScreenState extends State<TimerTopicSelectScreen> {
               ),
             ),
 
-            StartFooter(onStart: _handleStartStudying, showWarning: _showWarning),
+            StartFooter(
+              onStart: _handleStartStudying,
+              showWarning: _showWarning,
+            ),
           ],
         ),
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 2),//bottomNavigationBar: const ExamsBottomNav(),
     );
   }
 }

@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/providers/exam_provider.dart';
+import '../../core/models/exam.dart';
 import 'widgets/edit_fields.dart';
 import 'widgets/edit_topics.dart';
 import 'widgets/exams_bottom_nav.dart';
 
 class EditExamScreen extends StatefulWidget {
-  final String examName;
-  final String examDate;
-  final int examProgress;
+  final String examId;
 
-  const EditExamScreen({
-    super.key,
-    required this.examName,
-    required this.examDate,
-    required this.examProgress,
-  });
+  const EditExamScreen({super.key, required this.examId});
 
   @override
   State<EditExamScreen> createState() => _EditExamScreenState();
@@ -26,40 +23,35 @@ class _EditExamScreenState extends State<EditExamScreen> {
   late TextEditingController _examNameController;
   late TextEditingController _subjectController;
   late TextEditingController _dateController;
+  late TextEditingController _targetHoursController;
   late List<TextEditingController> _topicControllers;
+  Exam? _exam;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize with actual exam data
-    _examNameController = TextEditingController(text: widget.examName);
-    _dateController = TextEditingController(text: widget.examDate);
-    
-    // Determine subject and topics based on exam name
-    String subject = _getSubjectFromExam(widget.examName);
-    List<String> topics = _getTopicsForExam(widget.examName);
-    
-    _subjectController = TextEditingController(text: subject);
-    _topicControllers = topics.map((topic) => TextEditingController(text: topic)).toList();
-  }
+    _exam = context.read<ExamProvider>().getExamById(widget.examId);
 
-  String _getSubjectFromExam(String examName) {
-    if (examName.contains('Physics')) return 'Physics';
-    if (examName.contains('Math')) return 'Mathematics';
-    if (examName.contains('Chemistry')) return 'Chemistry';
-    return 'General';
-  }
-
-  List<String> _getTopicsForExam(String examName) {
-    if (examName.contains('Physics')) {
-      return ['Kinematics & Dynamics', 'Work and Energy', 'Circular Motion', 'Thermodynamics'];
-    } else if (examName.contains('Math')) {
-      return ['Calculus', 'Linear Algebra', 'Differential Equations'];
-    } else if (examName.contains('Chemistry')) {
-      return ['Organic Chemistry', 'Thermochemistry', 'Chemical Bonding'];
+    if (_exam != null) {
+      _examNameController = TextEditingController(text: _exam!.name);
+      _subjectController = TextEditingController(text: _exam!.subject);
+      _dateController = TextEditingController(
+        text: DateFormat('MMM d, yyyy').format(_exam!.examDate),
+      );
+      _targetHoursController = TextEditingController(
+        text: _exam!.targetStudyHours.toString(),
+      );
+      _topicControllers = _exam!.topics
+          .map((topic) => TextEditingController(text: topic))
+          .toList();
+    } else {
+      _examNameController = TextEditingController();
+      _subjectController = TextEditingController();
+      _dateController = TextEditingController();
+      _targetHoursController = TextEditingController(text: '10');
+      _topicControllers = [TextEditingController()];
     }
-    return ['Topic 1', 'Topic 2', 'Topic 3'];
   }
 
   @override
@@ -67,15 +59,45 @@ class _EditExamScreenState extends State<EditExamScreen> {
     _examNameController.dispose();
     _subjectController.dispose();
     _dateController.dispose();
+    _targetHoursController.dispose();
     for (var controller in _topicControllers) {
       controller.dispose();
     }
     super.dispose();
   }
 
-  void _handleSave() {
-    // Handle save logic
-    context.pop();
+  Future<void> _handleSave() async {
+    if (_exam == null) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final updatedTopics = _topicControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+
+      final updatedExam = _exam!.copyWith(
+        name: _examNameController.text.trim(),
+        subject: _subjectController.text.trim(),
+        topics: updatedTopics,
+        targetStudyHours:
+            double.tryParse(_targetHoursController.text.trim()) ??
+            _exam!.targetStudyHours,
+        synced: false,
+      );
+
+      await context.read<ExamProvider>().updateExam(updatedExam);
+      if (mounted) context.pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _addTopic() {
@@ -84,24 +106,33 @@ class _EditExamScreenState extends State<EditExamScreen> {
     });
   }
 
-  void _removeTopic(int index) {
-    if (_topicControllers.length > 1) {
-      setState(() {
-        _topicControllers[index].dispose();
-        _topicControllers.removeAt(index);
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (_exam == null) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () => context.pop(),
+          ),
+          title: const Text('Edit Exam'),
+        ),
+        body: const Center(child: Text('Exam not found')),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppColors.textPrimary,
+            size: 24,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -114,10 +145,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: const Color(0xFFE5E7EB),
-            height: 1,
-          ),
+          child: Container(color: const Color(0xFFE5E7EB), height: 1),
         ),
       ),
       body: Container(
@@ -134,37 +162,64 @@ class _EditExamScreenState extends State<EditExamScreen> {
                   dateController: _dateController,
                 ),
                 const SizedBox(height: 24),
-                EditTopics(topicControllers: _topicControllers, onAddTopic: _addTopic),
+                EditTopics(
+                  topicControllers: _topicControllers,
+                  onAddTopic: _addTopic,
+                ),
 
-                // Save Changes Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2A7FF7),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
-                      shadowColor: const Color(0xFF2A7FF7).withOpacity(0.3),
-                    ),
-                    child: Text(
-                      'Save Changes',
-                      style: AppTextStyles.button.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                const SizedBox(height: 16),
+                Text(
+                  'Target Study Hours',
+                  style: AppTextStyles.h2.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _targetHoursController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. 10',
+                    suffixText: 'hours',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+
+                _isSaving
+                    ? const Center(child: CircularProgressIndicator())
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _handleSave,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2A7FF7),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 4,
+                          ),
+                          child: Text(
+                            'Save Changes',
+                            style: AppTextStyles.button.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
 
                 const SizedBox(height: 12),
 
-                // Cancel Button
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
