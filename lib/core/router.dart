@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'services/auth_notifier.dart';
+import '../features/landing/landing_screen.dart';
 import '../features/welcome/welcome_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/sign_up_screen.dart';
@@ -22,17 +23,27 @@ class AppRouter {
     '/forgot-password',
   ];
 
+  static const _publicRoutes = ['/landing'];
+
   static GoRouter createRouter(AuthNotifier authNotifier) => GoRouter(
     initialLocation: authNotifier.isLoggedIn ? '/dashboard' : '/welcome',
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final loggedIn = authNotifier.isLoggedIn;
       final isAuthPage = _authRoutes.contains(state.matchedLocation);
+      final isPublicPage = _publicRoutes.contains(state.matchedLocation);
+
+      if (isPublicPage) return null;
       if (loggedIn && isAuthPage) return '/dashboard';
       if (!loggedIn && !isAuthPage) return '/welcome';
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/landing',
+        name: 'landing',
+        builder: (context, state) => const LandingScreen(),
+      ),
       GoRoute(
         path: '/welcome',
         name: 'welcome',
