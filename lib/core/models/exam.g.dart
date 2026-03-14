@@ -24,7 +24,7 @@ class ExamAdapter extends TypeAdapter<Exam> {
       name: fields[1] as String,
       subject: fields[2] as String,
       examDate: fields[3] as DateTime,
-      topics: (fields[4] as List).cast<String>(),
+      topics: fields[4] != null ? List<String>.from(fields[4] as List) : [],
       progress: fields[5] as double,
       userId: fields[6] as String,
       synced: fields[7] as bool? ?? false,

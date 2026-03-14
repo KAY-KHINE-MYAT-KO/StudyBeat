@@ -26,7 +26,7 @@ class AppRouter {
   static const _publicRoutes = ['/landing'];
 
   static GoRouter createRouter(AuthNotifier authNotifier) => GoRouter(
-    initialLocation: authNotifier.isLoggedIn ? '/dashboard' : '/welcome',
+    initialLocation: '/landing',
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final loggedIn = authNotifier.isLoggedIn;

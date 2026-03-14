@@ -8,7 +8,7 @@ import '../../core/widgets/secondary_button.dart';
 import '../../core/providers/exam_provider.dart';
 import 'widgets/exam_fields.dart';
 import 'widgets/date_picker_field.dart';
-import 'widgets/topics_section.dart';
+import 'widgets/edit_topics.dart';
 
 class AddExamScreen extends StatefulWidget {
   const AddExamScreen({super.key});
@@ -22,17 +22,24 @@ class _AddExamScreenState extends State<AddExamScreen> {
   final _examNameController = TextEditingController();
   final _subjectController = TextEditingController();
   DateTime? _selectedDate;
-  final List<String> _topics = [];
-  final _topicController = TextEditingController();
+  late List<TextEditingController> _topicControllers;
   final _targetHoursController = TextEditingController(text: '10');
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _topicControllers = [TextEditingController()];
+  }
 
   @override
   void dispose() {
     _examNameController.dispose();
     _subjectController.dispose();
-    _topicController.dispose();
     _targetHoursController.dispose();
+    for (var controller in _topicControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -64,23 +71,20 @@ class _AddExamScreenState extends State<AddExamScreen> {
   }
 
   void _addTopic() {
-    if (_topicController.text.trim().isNotEmpty) {
-      setState(() {
-        _topics.add(_topicController.text.trim());
-        _topicController.clear();
-      });
-    }
-  }
-
-  void _removeTopic(int index) {
     setState(() {
-      _topics.removeAt(index);
+      _topicControllers.add(TextEditingController());
     });
   }
 
   Future<void> _saveExam() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDate == null) return;
+
+    // Extract topics from controllers, filtering out empty ones
+    final topics = _topicControllers
+        .map((c) => c.text.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
 
     setState(() => _isSaving = true);
 
@@ -89,7 +93,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
         name: _examNameController.text.trim(),
         subject: _subjectController.text.trim(),
         examDate: _selectedDate!,
-        topics: _topics,
+        topics: topics,
         targetStudyHours:
             double.tryParse(_targetHoursController.text.trim()) ?? 10.0,
       );
@@ -137,11 +141,9 @@ class _AddExamScreenState extends State<AddExamScreen> {
                   onTap: () => _selectDate(context),
                 ),
                 const SizedBox(height: 24),
-                TopicsSection(
-                  topics: _topics,
-                  topicController: _topicController,
+                EditTopics(
+                  topicControllers: _topicControllers,
                   onAddTopic: _addTopic,
-                  onRemoveTopic: _removeTopic,
                 ),
                 const SizedBox(height: 20),
                 Text('Target Study Hours', style: AppTextStyles.h3),

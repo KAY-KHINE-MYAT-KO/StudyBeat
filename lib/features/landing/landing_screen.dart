@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme/app_colors.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -13,10 +14,13 @@ class _LandingScreenState extends State<LandingScreen>
   late final AnimationController _controller;
   late final Animation<double> _fadeIn;
   late final Animation<Offset> _slideUp;
+  late final ScrollController _scrollController;
+  final _featuresKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -31,17 +35,19 @@ class _LandingScreenState extends State<LandingScreen>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
 
-  static const _bg = Color(0xFF0F0F1A);
-  static const _surface = Color(0xFF1A1A2E);
-  static const _primary = Color(0xFF6C63FF);
-  static const _accent = Color(0xFFFF6584);
-  static const _muted = Color(0xFF9898B8);
-  static const _green = Color(0xFF4ECDC4);
-  static const _yellow = Color(0xFFFFD166);
+  // Use app colors for consistency
+  static const _bg = AppColors.background;
+  static const _surface = AppColors.surface;
+  static const _primary = AppColors.primary;
+  static const _accent = AppColors.accent;
+  static const _muted = AppColors.textSecondary;
+  static const _success = AppColors.success;
+  static const _warning = AppColors.warning;
 
   final _features = const [
     _FeatureData(
@@ -60,14 +66,14 @@ class _LandingScreenState extends State<LandingScreen>
     ),
     _FeatureData(
       icon: Icons.bar_chart_rounded,
-      color: _green,
+      color: _success,
       title: 'Progress Dashboard',
       desc:
           'Visual progress bars and completion percentages per exam. See your readiness grow in real time.',
     ),
     _FeatureData(
       icon: Icons.history_rounded,
-      color: _yellow,
+      color: _warning,
       title: 'Study History Log',
       desc:
           'Review all past study sessions. Understand your habits and improve how you prepare for every exam.',
@@ -119,6 +125,7 @@ class _LandingScreenState extends State<LandingScreen>
         child: SlideTransition(
           position: _slideUp,
           child: SingleChildScrollView(
+            controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -126,7 +133,10 @@ class _LandingScreenState extends State<LandingScreen>
                 _buildHero(context, isMobile),
                 _buildStatsStrip(isMobile),
                 _buildProblemSection(isMobile),
-                _buildFeaturesSection(isMobile),
+                Container(
+                  key: _featuresKey,
+                  child: _buildFeaturesSection(isMobile),
+                ),
                 _buildHowItWorks(isMobile),
                 _buildCTA(context),
                 _buildFooter(),
@@ -143,9 +153,9 @@ class _LandingScreenState extends State<LandingScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
       decoration: BoxDecoration(
-        color: _bg.withOpacity(0.9),
+        color: _bg.withOpacity(0.95),
         border: Border(
-          bottom: BorderSide(color: _primary.withOpacity(0.15), width: 1),
+          bottom: BorderSide(color: _primary.withOpacity(0.1), width: 1),
         ),
       ),
       child: Row(
@@ -169,11 +179,11 @@ class _LandingScreenState extends State<LandingScreen>
         horizontal: isMobile ? 24 : 60,
         vertical: isMobile ? 60 : 90,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: RadialGradient(
-          center: Alignment(0, -0.5),
+          center: const Alignment(0, -0.5),
           radius: 1.2,
-          colors: [Color(0x2E6C63FF), _bg],
+          colors: [_accent.withOpacity(0.12), _bg],
         ),
       ),
       child: isMobile
@@ -219,14 +229,14 @@ class _LandingScreenState extends State<LandingScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: _primary.withOpacity(0.15),
+        color: _primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(50),
-        border: Border.all(color: _primary.withOpacity(0.3)),
+        border: Border.all(color: _primary.withOpacity(0.2)),
       ),
-      child: const Text(
+      child: Text(
         '🎓  Education App',
         style: TextStyle(
-          color: Color(0xFFa89fff),
+          color: _primary,
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
@@ -245,7 +255,7 @@ class _LandingScreenState extends State<LandingScreen>
           'Study Smarter.',
           textAlign: isMobile ? TextAlign.center : TextAlign.left,
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: isMobile ? 34 : 48,
             fontWeight: FontWeight.w800,
             letterSpacing: -1.5,
@@ -253,14 +263,13 @@ class _LandingScreenState extends State<LandingScreen>
           ),
         ),
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [_primary, _accent],
-          ).createShader(bounds),
+          shaderCallback: (bounds) =>
+              LinearGradient(colors: [_primary, _accent]).createShader(bounds),
           child: Text(
             'Beat Every Exam.',
             textAlign: isMobile ? TextAlign.center : TextAlign.left,
             style: TextStyle(
-              color: Colors.white,
+              color: _primary,
               fontSize: isMobile ? 34 : 48,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.5,
@@ -273,7 +282,7 @@ class _LandingScreenState extends State<LandingScreen>
   }
 
   Widget _heroSubtitle() {
-    return const Text(
+    return Text(
       'A personal exam preparation tracker that helps you organize your syllabus, log focused study sessions, and see your readiness grow — all in one place.',
       style: TextStyle(color: _muted, fontSize: 15, height: 1.7),
     );
@@ -284,7 +293,16 @@ class _LandingScreenState extends State<LandingScreen>
       label: '🚀  Open StudyBeat',
       onTap: () => context.go('/welcome'),
     );
-    final secondary = _SecondaryButton(label: '✨  See Features', onTap: () {});
+    final secondary = _SecondaryButton(
+      label: '✨  See Features',
+      onTap: () {
+        Scrollable.ensureVisible(
+          _featuresKey.currentContext!,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      },
+    );
     if (isMobile) {
       return Column(
         children: [
@@ -305,10 +323,10 @@ class _LandingScreenState extends State<LandingScreen>
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(36),
-        border: Border.all(color: _primary.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: _primary.withOpacity(0.15), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: _primary.withOpacity(0.25),
+            color: _primary.withOpacity(0.12),
             blurRadius: 50,
             spreadRadius: -10,
           ),
@@ -321,7 +339,7 @@ class _LandingScreenState extends State<LandingScreen>
             height: 8,
             margin: const EdgeInsets.only(bottom: 14),
             decoration: BoxDecoration(
-              color: _bg,
+              color: _muted.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
             ),
           ),
@@ -333,14 +351,14 @@ class _LandingScreenState extends State<LandingScreen>
           const SizedBox(height: 8),
           _mockTopicItem(
             Icons.check_circle,
-            _green,
+            _success,
             'Integration Basics',
             'Done',
           ),
           const SizedBox(height: 4),
           _mockTopicItem(
             Icons.timelapse,
-            _yellow,
+            _warning,
             'Differentiation',
             'In Progress',
           ),
@@ -360,7 +378,7 @@ class _LandingScreenState extends State<LandingScreen>
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF22223B),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border(left: BorderSide(color: color, width: 3)),
       ),
@@ -370,7 +388,7 @@ class _LandingScreenState extends State<LandingScreen>
           Text(
             name,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
             ),
@@ -380,7 +398,7 @@ class _LandingScreenState extends State<LandingScreen>
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white.withOpacity(0.08),
+              backgroundColor: _primary.withOpacity(0.12),
               valueColor: AlwaysStoppedAnimation(color),
               minHeight: 5,
             ),
@@ -400,18 +418,18 @@ class _LandingScreenState extends State<LandingScreen>
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_primary.withOpacity(0.2), _accent.withOpacity(0.1)],
+          colors: [_primary.withOpacity(0.08), _accent.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _primary.withOpacity(0.25)),
+        border: Border.all(color: _primary.withOpacity(0.15)),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Text(
             '⏱  FOCUS SESSION',
             style: TextStyle(color: _muted, fontSize: 9, letterSpacing: 0.8),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             '24:37',
             style: TextStyle(
@@ -421,7 +439,7 @@ class _LandingScreenState extends State<LandingScreen>
               letterSpacing: 2,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             'Calculus – Chapter 5',
             style: TextStyle(color: _muted, fontSize: 9),
@@ -444,7 +462,7 @@ class _LandingScreenState extends State<LandingScreen>
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 10),
           ),
         ),
         Text(status, style: const TextStyle(color: _muted, fontSize: 9)),
@@ -467,7 +485,7 @@ class _LandingScreenState extends State<LandingScreen>
       ),
       decoration: BoxDecoration(
         border: Border.symmetric(
-          horizontal: BorderSide(color: Colors.white.withOpacity(0.06)),
+          horizontal: BorderSide(color: _primary.withOpacity(0.08)),
         ),
       ),
       child: Wrap(
@@ -480,13 +498,13 @@ class _LandingScreenState extends State<LandingScreen>
                 child: Column(
                   children: [
                     ShaderMask(
-                      shaderCallback: (b) => const LinearGradient(
+                      shaderCallback: (b) => LinearGradient(
                         colors: [_primary, _accent],
                       ).createShader(b),
                       child: Text(
                         s[0],
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: _primary,
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
                         ),
@@ -541,7 +559,7 @@ class _LandingScreenState extends State<LandingScreen>
           const SizedBox(height: 10),
           _sectionTitle('Exam prep is ', 'fragmented & stressful'),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Students juggle calendars, notebooks, timers, and mental notes — all disconnected. This leads to inefficient studying, last-minute cramming, and unnecessary stress.',
             style: TextStyle(color: _muted, fontSize: 14, height: 1.7),
           ),
@@ -567,7 +585,7 @@ class _LandingScreenState extends State<LandingScreen>
   Widget _buildFeaturesSection(bool isMobile) {
     final w = MediaQuery.of(context).size.width;
     return Container(
-      color: _surface,
+      color: _accent.withOpacity(0.06),
       child: _SectionWrapper(
         isMobile: isMobile,
         child: Column(
@@ -577,7 +595,7 @@ class _LandingScreenState extends State<LandingScreen>
             const SizedBox(height: 10),
             _sectionTitle('Everything to ', 'crush your exams'),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'StudyBeat brings all your exam prep tools into one focused, beautifully simple app.',
               style: TextStyle(color: _muted, fontSize: 14, height: 1.7),
             ),
@@ -612,7 +630,7 @@ class _LandingScreenState extends State<LandingScreen>
           const SizedBox(height: 10),
           _sectionTitle('From zero to ', 'exam ready'),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Six simple steps that turn overwhelming exam prep into a calm, structured rhythm.',
             style: TextStyle(color: _muted, fontSize: 14, height: 1.7),
           ),
@@ -638,11 +656,11 @@ class _LandingScreenState extends State<LandingScreen>
   Widget _buildCTA(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 80),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: RadialGradient(
           center: Alignment.center,
           radius: 1.0,
-          colors: [Color(0x266C63FF), _bg],
+          colors: [_accent.withOpacity(0.1), _bg],
         ),
       ),
       child: Column(
@@ -650,14 +668,13 @@ class _LandingScreenState extends State<LandingScreen>
           _sectionTag('Get Started'),
           const SizedBox(height: 14),
           ShaderMask(
-            shaderCallback: (b) => const LinearGradient(
-              colors: [_primary, _accent],
-            ).createShader(b),
-            child: const Text(
+            shaderCallback: (b) =>
+                LinearGradient(colors: [_primary, _accent]).createShader(b),
+            child: Text(
               'Your next exam.\nFully prepared.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: _primary,
                 fontSize: 38,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -1.2,
@@ -666,7 +683,7 @@ class _LandingScreenState extends State<LandingScreen>
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Stop cramming. Start tracking.\nStudyBeat helps you study with purpose — one topic, one session, one exam at a time.',
             textAlign: TextAlign.center,
             style: TextStyle(color: _muted, fontSize: 14, height: 1.7),
@@ -687,7 +704,7 @@ class _LandingScreenState extends State<LandingScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.06))),
+        border: Border(top: BorderSide(color: _primary.withOpacity(0.1))),
       ),
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
@@ -698,11 +715,11 @@ class _LandingScreenState extends State<LandingScreen>
             fontSize: 16,
             fontWeight: FontWeight.w800,
           ),
-          const Text(
+          Text(
             'Built by Kay Khine Myat Ko · 2026',
             style: TextStyle(color: _muted, fontSize: 12),
           ),
-          const Text(
+          Text(
             '© 2026 StudyBeat',
             style: TextStyle(color: _muted, fontSize: 12),
           ),
@@ -719,11 +736,11 @@ class _LandingScreenState extends State<LandingScreen>
   }) {
     return ShaderMask(
       shaderCallback: (b) =>
-          const LinearGradient(colors: [_primary, _accent]).createShader(b),
+          LinearGradient(colors: [_primary, _accent]).createShader(b),
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white,
+          color: _primary,
           fontSize: fontSize,
           fontWeight: fontWeight,
         ),
@@ -734,7 +751,7 @@ class _LandingScreenState extends State<LandingScreen>
   Widget _sectionTag(String label) {
     return Text(
       label.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         color: _primary,
         fontSize: 11,
         fontWeight: FontWeight.w700,
@@ -748,8 +765,8 @@ class _LandingScreenState extends State<LandingScreen>
       children: [
         Text(
           plain,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.textPrimary,
             fontSize: 28,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.8,
@@ -758,11 +775,11 @@ class _LandingScreenState extends State<LandingScreen>
         ),
         ShaderMask(
           shaderCallback: (b) =>
-              const LinearGradient(colors: [_primary, _accent]).createShader(b),
+              LinearGradient(colors: [_primary, _accent]).createShader(b),
           child: Text(
             highlight,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: _primary,
               fontSize: 28,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.8,
@@ -806,14 +823,14 @@ class _NavButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF574fd6)],
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
           ),
           borderRadius: BorderRadius.circular(50),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
+        child: const Text(
+          'Open App',
+          style: TextStyle(
             color: Colors.white,
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -844,15 +861,15 @@ class _PrimaryButton extends StatelessWidget {
           vertical: large ? 18 : 14,
         ),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF574fd6)],
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
           ),
           borderRadius: BorderRadius.circular(50),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x596C63FF),
+              color: AppColors.primary.withOpacity(0.25),
               blurRadius: 24,
-              offset: Offset(0, 8),
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -882,14 +899,17 @@ class _SecondaryButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.3),
+            width: 1.5,
+          ),
           borderRadius: BorderRadius.circular(50),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -912,9 +932,9 @@ class _PainCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: AppColors.accent.withOpacity(0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -924,7 +944,7 @@ class _PainCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
@@ -933,7 +953,7 @@ class _PainCard extends StatelessWidget {
           Text(
             desc,
             style: const TextStyle(
-              color: Color(0xFF9898B8),
+              color: AppColors.textSecondary,
               fontSize: 12,
               height: 1.6,
             ),
@@ -965,12 +985,9 @@ class _FeatureCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F1A),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF6C63FF).withOpacity(0.15),
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -979,7 +996,7 @@ class _FeatureCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: data.color.withOpacity(0.15),
+              color: data.color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(data.icon, color: data.color, size: 24),
@@ -988,7 +1005,7 @@ class _FeatureCard extends StatelessWidget {
           Text(
             data.title,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
@@ -997,7 +1014,7 @@ class _FeatureCard extends StatelessWidget {
           Text(
             data.desc,
             style: const TextStyle(
-              color: Color(0xFF9898B8),
+              color: AppColors.textSecondary,
               fontSize: 12.5,
               height: 1.65,
             ),
@@ -1025,15 +1042,15 @@ class _StepCard extends StatelessWidget {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6C63FF), Color(0xFF574fd6)],
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
             ),
             shape: BoxShape.circle,
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x596C63FF),
+                color: AppColors.primary.withOpacity(0.25),
                 blurRadius: 16,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -1053,7 +1070,7 @@ class _StepCard extends StatelessWidget {
           step.title,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
@@ -1063,7 +1080,7 @@ class _StepCard extends StatelessWidget {
           step.desc,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Color(0xFF9898B8),
+            color: AppColors.textSecondary,
             fontSize: 12,
             height: 1.6,
           ),
