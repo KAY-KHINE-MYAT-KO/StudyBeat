@@ -51,4 +51,49 @@ void main() {
 
     expect(find.text('Email is required'), findsNothing);
   });
+
+  testWidgets(
+    'AppTextField treats zero-width Unicode-only input as invalid for required email',
+    (WidgetTester tester) async {
+      final formKey = GlobalKey<FormState>();
+      final controller = TextEditingController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  AppTextField(
+                    label: 'Email',
+                    hint: 'you@example.com',
+                    controller: controller,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Email is required';
+                      }
+                      return null;
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      formKey.currentState!.validate();
+                    },
+                    child: const Text('Validate'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '\u200B\u200C\u200D');
+      await tester.tap(find.text('Validate'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Email is required'), findsOneWidget);
+    },
+  );
 }
