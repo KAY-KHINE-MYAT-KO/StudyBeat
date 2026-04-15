@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/exam.dart';
 import '../services/connectivity_service.dart';
@@ -45,9 +47,12 @@ class ExamRepository {
         await _collection.doc(exam.id).set(exam.toFirestore());
         final synced = exam.copyWith(synced: true);
         await _box.put(exam.id, synced);
+        debugPrint(
+          'ExamRepository.addExam synced to Firestore (project=${Firebase.app().options.projectId}, examId=${exam.id}, userId=${exam.userId})',
+        );
         return synced;
-      } catch (_) {
-        // Firestore failed — local save is fine
+      } on FirebaseException catch (e) {
+        debugPrint('ExamRepository.addExam Firestore error: ${e.code} ${e.message}');
       }
     }
     return exam;
@@ -64,8 +69,13 @@ class ExamRepository {
         await _collection.doc(exam.id).update(exam.toFirestore());
         final synced = exam.copyWith(synced: true);
         await _box.put(exam.id, synced);
+        debugPrint(
+          'ExamRepository.updateExam synced to Firestore (project=${Firebase.app().options.projectId}, examId=${exam.id}, userId=${exam.userId})',
+        );
         return synced;
-      } catch (_) {}
+      } on FirebaseException catch (e) {
+        debugPrint('ExamRepository.updateExam Firestore error: ${e.code} ${e.message}');
+      }
     }
     return updated;
   }
@@ -84,7 +94,9 @@ class ExamRepository {
       try {
         await _collection.doc(id).delete();
         await _box.delete(id);
-      } catch (_) {}
+      } on FirebaseException catch (e) {
+        debugPrint('ExamRepository.deleteExam Firestore error: ${e.code} ${e.message}');
+      }
     }
   }
 
@@ -99,11 +111,18 @@ class ExamRepository {
         if (exam.deleted) {
           await _collection.doc(exam.id).delete();
           await _box.delete(exam.id);
+          debugPrint(
+            'ExamRepository.syncToFirestore deleted exam (project=${Firebase.app().options.projectId}, examId=${exam.id}, userId=${exam.userId})',
+          );
         } else {
           await _collection.doc(exam.id).set(exam.toFirestore());
           await _box.put(exam.id, exam.copyWith(synced: true));
+          debugPrint(
+            'ExamRepository.syncToFirestore uploaded exam (project=${Firebase.app().options.projectId}, examId=${exam.id}, userId=${exam.userId})',
+          );
         }
-      } catch (_) {
+      } on FirebaseException catch (e) {
+        debugPrint('ExamRepository.syncToFirestore Firestore error (${exam.id}): ${e.code} ${e.message}');
         // Continue with other items
       }
     }
@@ -118,6 +137,9 @@ class ExamRepository {
       final snapshot = await _collection
           .where('userId', isEqualTo: userId)
           .get();
+      debugPrint(
+        'ExamRepository.syncFromFirestore fetched ${snapshot.docs.length} exams (project=${Firebase.app().options.projectId}, userId=$userId)',
+      );
 
       for (final doc in snapshot.docs) {
         final exam = Exam.fromFirestore(
@@ -130,7 +152,8 @@ class ExamRepository {
           await _box.put(exam.id, exam);
         }
       }
-    } catch (_) {
+    } on FirebaseException catch (e) {
+      debugPrint('ExamRepository.syncFromFirestore Firestore error: ${e.code} ${e.message}');
       // Offline or error — use cached data
     }
   }

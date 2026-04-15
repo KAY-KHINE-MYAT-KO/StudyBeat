@@ -169,7 +169,9 @@ class StudySessionProvider extends ChangeNotifier {
     required List<String> topics,
     required int durationInSeconds,
   }) async {
-    if (_userId == null) return;
+    if (_userId == null) {
+      throw StateError('You are not signed in. Please log in and try again.');
+    }
 
     final session = StudySession(
       id: const Uuid().v4(),

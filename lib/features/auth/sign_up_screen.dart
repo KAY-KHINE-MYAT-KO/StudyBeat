@@ -57,7 +57,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Account created! Please sign in.'),
+            content: const Text('Account created! You are now signed in.'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -65,7 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ),
         );
-        context.go('/login');
+        context.go('/dashboard');
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {

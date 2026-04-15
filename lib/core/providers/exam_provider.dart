@@ -78,7 +78,9 @@ class ExamProvider extends ChangeNotifier {
     required List<String> topics,
     double targetStudyHours = 10.0,
   }) async {
-    if (_userId == null) return;
+    if (_userId == null) {
+      throw StateError('You are not signed in. Please log in and try again.');
+    }
 
     final exam = Exam(
       id: const Uuid().v4(),
@@ -98,7 +100,9 @@ class ExamProvider extends ChangeNotifier {
   // ── Update exam ────────────────────────────────────────────────
 
   Future<void> updateExam(Exam exam) async {
-    if (_userId == null) return;
+    if (_userId == null) {
+      throw StateError('You are not signed in. Please log in and try again.');
+    }
     await _repository.updateExam(exam);
     _exams = _repository.getExams(_userId!);
     notifyListeners();
