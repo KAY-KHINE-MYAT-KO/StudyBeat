@@ -7,6 +7,50 @@ import '../../core/widgets/primary_button.dart';
 import '../../core/widgets/secondary_button.dart';
 import '../../core/providers/study_session_provider.dart';
 
+/// Efficient timer state management using ChangeNotifier
+/// Instead of calling setState() every second, we only notify listeners
+class _TimerValue extends ChangeNotifier {
+  int _hours = 0;
+  int _minutes = 0;
+  int _seconds = 0;
+  int _totalSeconds = 0;
+  bool _isRunning = false;
+
+  int get hours => _hours;
+  int get minutes => _minutes;
+  int get seconds => _seconds;
+  int get totalSeconds => _totalSeconds;
+  bool get isRunning => _isRunning;
+
+  void incrementSecond() {
+    _seconds++;
+    _totalSeconds++;
+    if (_seconds == 60) {
+      _seconds = 0;
+      _minutes++;
+      if (_minutes == 60) {
+        _minutes = 0;
+        _hours++;
+      }
+    }
+    notifyListeners();
+  }
+
+  void setRunning(bool running) {
+    _isRunning = running;
+    notifyListeners();
+  }
+
+  void reset() {
+    _hours = 0;
+    _minutes = 0;
+    _seconds = 0;
+    _totalSeconds = 0;
+    _isRunning = false;
+    notifyListeners();
+  }
+}
+
 class TimerScreen extends StatefulWidget {
   final List<String> selectedTopics;
 
@@ -17,68 +61,50 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
+  late _TimerValue _timerValue;
   Timer? _timer;
-  int _hours = 0;
-  int _minutes = 0;
-  int _seconds = 0;
-  bool _isRunning = false;
-  int _totalSeconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timerValue = _TimerValue();
+  }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _timerValue.dispose();
     super.dispose();
   }
 
   void _startPauseTimer() {
-    if (_isRunning) {
+    if (_timerValue.isRunning) {
       // Pause
       _timer?.cancel();
-      setState(() {
-        _isRunning = false;
-      });
+      _timerValue.setRunning(false);
     } else {
       // Start
-      setState(() {
-        _isRunning = true;
-      });
+      _timerValue.setRunning(true);
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        setState(() {
-          _seconds++;
-          _totalSeconds++;
-          if (_seconds == 60) {
-            _seconds = 0;
-            _minutes++;
-            if (_minutes == 60) {
-              _minutes = 0;
-              _hours++;
-            }
-          }
-        });
+        _timerValue.incrementSecond();
       });
     }
   }
 
   void _resetTimer() {
     // Save session before resetting if there was any time
-    if (_totalSeconds > 0) {
+    if (_timerValue.totalSeconds > 0) {
       _saveSession();
     }
     _timer?.cancel();
-    setState(() {
-      _hours = 0;
-      _minutes = 0;
-      _seconds = 0;
-      _totalSeconds = 0;
-      _isRunning = false;
-    });
+    _timerValue.reset();
   }
 
   Future<void> _saveSession() async {
-    if (_totalSeconds <= 0) return;
+    if (_timerValue.totalSeconds <= 0) return;
     await context.read<StudySessionProvider>().saveSession(
       topics: widget.selectedTopics,
-      durationInSeconds: _totalSeconds,
+      durationInSeconds: _timerValue.totalSeconds,
     );
   }
 
@@ -130,24 +156,43 @@ class _TimerScreenState extends State<TimerScreen> {
 
               const SizedBox(height: 32),
 
-              // Timer Display Cards
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _TimeCard(value: _formatTime(_hours), label: 'Hours'),
-                  const SizedBox(width: 16),
-                  _TimeCard(value: _formatTime(_minutes), label: 'Minutes'),
-                  const SizedBox(width: 16),
-                  _TimeCard(value: _formatTime(_seconds), label: 'Seconds'),
-                ],
+              // Timer Display Cards (listens to _timerValue changes)
+              ListenableBuilder(
+                listenable: _timerValue,
+                builder: (context, child) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _TimeCard(
+                        value: _formatTime(_timerValue.hours),
+                        label: 'Hours',
+                      ),
+                      const SizedBox(width: 16),
+                      _TimeCard(
+                        value: _formatTime(_timerValue.minutes),
+                        label: 'Minutes',
+                      ),
+                      const SizedBox(width: 16),
+                      _TimeCard(
+                        value: _formatTime(_timerValue.seconds),
+                        label: 'Seconds',
+                      ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 48),
 
               // Control Buttons
-              PrimaryButton(
-                text: _isRunning ? 'Pause' : 'Start',
-                onPressed: _startPauseTimer,
+              ListenableBuilder(
+                listenable: _timerValue,
+                builder: (context, child) {
+                  return PrimaryButton(
+                    text: _timerValue.isRunning ? 'Pause' : 'Start',
+                    onPressed: _startPauseTimer,
+                  );
+                },
               ),
 
               const SizedBox(height: 12),
@@ -157,41 +202,49 @@ class _TimerScreenState extends State<TimerScreen> {
               const SizedBox(height: 24),
 
               // Session Info
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Session Info', style: AppTextStyles.h3),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ListenableBuilder(
+                listenable: _timerValue,
+                builder: (context, child) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Total Time', style: AppTextStyles.bodySmall),
-                          Text(
-                            '${_formatTime(_hours)}:${_formatTime(_minutes)}:${_formatTime(_seconds)}',
-                            style: AppTextStyles.h3,
+                          Text('Session Info', style: AppTextStyles.h3),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total Time',
+                                style: AppTextStyles.bodySmall,
+                              ),
+                              Text(
+                                '${_formatTime(_timerValue.hours)}:${_formatTime(_timerValue.minutes)}:${_formatTime(_timerValue.seconds)}',
+                                style: AppTextStyles.h3,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Topics Covered',
+                                style: AppTextStyles.bodySmall,
+                              ),
+                              Text(
+                                '${widget.selectedTopics.length}',
+                                style: AppTextStyles.h3,
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Topics Covered',
-                            style: AppTextStyles.bodySmall,
-                          ),
-                          Text(
-                            '${widget.selectedTopics.length}',
-                            style: AppTextStyles.h3,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ],
           ),

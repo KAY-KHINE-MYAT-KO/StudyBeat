@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
@@ -12,10 +13,21 @@ class ExamProvider extends ChangeNotifier {
   List<Exam> _exams = [];
   bool _isLoading = false;
   String? _error;
+  late final StreamSubscription<User?> _authSub;
 
   ExamProvider(this._repository, this._connectivity) {
     // Listen for connectivity changes to trigger sync
     _connectivity.addListener(_onConnectivityChanged);
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        _exams = [];
+        _isLoading = false;
+        _error = null;
+        notifyListeners();
+        return;
+      }
+      loadExams();
+    });
   }
 
   List<Exam> get exams => _exams;
@@ -27,7 +39,13 @@ class ExamProvider extends ChangeNotifier {
   // ── Load exams (offline-first) ─────────────────────────────────
 
   Future<void> loadExams() async {
-    if (_userId == null) return;
+    if (_userId == null) {
+      _exams = [];
+      _isLoading = false;
+      _error = null;
+      notifyListeners();
+      return;
+    }
 
     _isLoading = true;
     _error = null;
@@ -80,6 +98,7 @@ class ExamProvider extends ChangeNotifier {
   // ── Update exam ────────────────────────────────────────────────
 
   Future<void> updateExam(Exam exam) async {
+    if (_userId == null) return;
     await _repository.updateExam(exam);
     _exams = _repository.getExams(_userId!);
     notifyListeners();
@@ -108,9 +127,10 @@ class ExamProvider extends ChangeNotifier {
   // ── Connectivity change → auto-sync ────────────────────────────
 
   void _onConnectivityChanged() {
-    if (_connectivity.isOnline && _userId != null) {
-      _repository.fullSync(_userId!).then((_) {
-        _exams = _repository.getExams(_userId!);
+    final userId = _userId;
+    if (_connectivity.isOnline && userId != null) {
+      _repository.fullSync(userId).then((_) {
+        _exams = _repository.getExams(userId);
         notifyListeners();
       });
     }
@@ -118,6 +138,7 @@ class ExamProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _authSub.cancel();
     _connectivity.removeListener(_onConnectivityChanged);
     super.dispose();
   }

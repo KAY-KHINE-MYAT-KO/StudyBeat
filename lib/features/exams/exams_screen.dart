@@ -61,40 +61,51 @@ class _ExamsScreenState extends State<ExamsScreen> {
             );
           }
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('My Exams', style: AppTextStyles.h1),
-                  const SizedBox(height: 20),
-                  ...exams.map((exam) {
-                    final dateStr = DateFormat(
-                      'MMM d, yyyy',
-                    ).format(exam.examDate);
-                    final sessionProvider = context
-                        .watch<StudySessionProvider>();
-                    final progress = sessionProvider.getProgressForExam(exam);
-                    final progressPct = (progress * 100).toInt();
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: GestureDetector(
-                        onTap: () {
-                          context.pushNamed('exam-details', extra: exam.id);
-                        },
-                        child: ProgressCard(
-                          title: exam.name,
-                          subtitle: 'Exam: $dateStr',
-                          progress: progress,
-                          percentageText: '$progressPct%',
+          return SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(20.0),
+                  sliver: SliverToBoxAdapter(
+                    child: Text('My Exams', style: AppTextStyles.h1),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  sliver: SliverList.builder(
+                    itemCount: exams.length,
+                    itemBuilder: (context, index) {
+                      final exam = exams[index];
+                      final dateStr = DateFormat(
+                        'MMM d, yyyy',
+                      ).format(exam.examDate);
+                      final sessionProvider = context
+                          .watch<StudySessionProvider>();
+                      final progress = sessionProvider.getProgressForExam(exam);
+                      final progressPct = (progress * 100).toInt();
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: GestureDetector(
+                          onTap: () {
+                            context.pushNamed('exam-details', extra: exam.id);
+                          },
+                          child: ProgressCard(
+                            title: exam.name,
+                            subtitle: 'Exam: $dateStr',
+                            progress: progress,
+                            percentageText: '$progressPct%',
+                          ),
                         ),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 80),
-                ],
-              ),
+                      );
+                    },
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  sliver: SliverToBoxAdapter(child: Container()),
+                ),
+              ],
             ),
           );
         },

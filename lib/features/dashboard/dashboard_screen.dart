@@ -35,28 +35,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, examProvider, sessionProvider, child) {
           final exams = examProvider.exams;
 
-          // Calculate overall readiness from actual study time vs target
-          final overallProgress = exams.isEmpty
-              ? 0
-              : (exams.fold<double>(
-                          0,
-                          (sum, e) =>
-                              sum + sessionProvider.getProgressForExam(e),
-                        ) /
-                        exams.length *
-                        100)
-                    .toInt();
-          //  final overallProgress = exams.isEmpty
-          // ? 0
-          // : (exams.fold<double>(
-          //             0,
-          //             (sum, e) =>
-          //                 sum + sessionProvider.getProgressForExam(e)
-          //           ) /
-          //           exams.length *
-          //           100)
-          //       .toInt();
-          debugPrint(overallProgress.toString());
+          // Calculate overall readiness using cached progress values
+          final overallProgress = sessionProvider.getOverallReadiness(exams);
           final studyTime = sessionProvider.formattedTodayTime;
           final sessionCount = sessionProvider.todaySessionCount;
 

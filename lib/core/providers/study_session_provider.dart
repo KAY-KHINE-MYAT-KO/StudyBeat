@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
@@ -13,8 +14,24 @@ class StudySessionProvider extends ChangeNotifier {
   List<StudySession> _sessions = [];
   bool _isLoading = false;
 
+  // Cache for exam progress to avoid expensive recalculations
+  final Map<String, double> _progressCache = {};
+  int _lastSessionCount = 0;
+  late final StreamSubscription<User?> _authSub;
+
   StudySessionProvider(this._repository, this._connectivity) {
     _connectivity.addListener(_onConnectivityChanged);
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        _sessions = [];
+        _isLoading = false;
+        _progressCache.clear();
+        _lastSessionCount = 0;
+        notifyListeners();
+        return;
+      }
+      loadSessions();
+    });
   }
 
   List<StudySession> get sessions => _sessions;
@@ -50,6 +67,15 @@ class StudySessionProvider extends ChangeNotifier {
     return '${minutes}m';
   }
 
+  // ── Cache invalidation helper ──────────────────────────────────
+
+  void _invalidateCacheIfNeeded() {
+    if (_sessions.length != _lastSessionCount) {
+      _progressCache.clear();
+      _lastSessionCount = _sessions.length;
+    }
+  }
+
   // ── Study time per exam (matched by topic names) ──────────────
 
   /// Returns the total seconds studied for a specific exam,
@@ -69,20 +95,52 @@ class StudySessionProvider extends ChangeNotifier {
 
   /// Returns progress (0.0 to 1.0) for an exam based on
   /// actual study time vs targetStudyHours.
-  /// TODO: Remove the 100x multiplier after testing!
+  /// Uses caching to avoid expensive recalculations on every build.
   double getProgressForExam(Exam exam) {
-    if (exam.targetStudyHours <= 0) return 0.0;
+    _invalidateCacheIfNeeded();
+
+    // Return cached value if available
+    if (_progressCache.containsKey(exam.id)) {
+      return _progressCache[exam.id]!;
+    }
+
+    if (exam.targetStudyHours <= 0) {
+      _progressCache[exam.id] = 0.0;
+      return 0.0;
+    }
+
     final studiedSeconds = getStudySecondsForExam(exam);
     final targetSeconds = (exam.targetStudyHours * 3600).toInt();
-    final progress =
-        (studiedSeconds * 100) / targetSeconds; // 100x speed for testing
-    return progress.clamp(0.0, 1.0);
+    final progress = studiedSeconds / targetSeconds;
+    final clampedProgress = progress.clamp(0.0, 1.0);
+
+    // Cache the calculated value
+    _progressCache[exam.id] = clampedProgress;
+    return clampedProgress;
+  }
+
+  /// Calculates overall readiness (0-100) for a list of exams.
+  /// Uses cached progress values, so prefer this over calculating in the UI.
+  int getOverallReadiness(List<Exam> exams) {
+    if (exams.isEmpty) return 0;
+    final totalProgress = exams.fold<double>(
+      0,
+      (sum, e) => sum + getProgressForExam(e),
+    );
+    return (totalProgress / exams.length * 100).toInt();
   }
 
   // ── Load sessions (offline-first) ─────────────────────────────
 
   Future<void> loadSessions() async {
-    if (_userId == null) return;
+    if (_userId == null) {
+      _sessions = [];
+      _isLoading = false;
+      _progressCache.clear();
+      _lastSessionCount = 0;
+      notifyListeners();
+      return;
+    }
 
     _isLoading = true;
     notifyListeners();
@@ -95,8 +153,9 @@ class StudySessionProvider extends ChangeNotifier {
       // 2. Sync with Firestore in background
       await _repository.fullSync(_userId!);
 
-      // 3. Reload from Hive after sync
+      // 3. Reload from Hive after sync (ensures we have fresh Firestore data)
       _sessions = _repository.getSessions(_userId!);
+      _invalidateCacheIfNeeded();
     } catch (_) {
     } finally {
       _isLoading = false;
@@ -129,16 +188,29 @@ class StudySessionProvider extends ChangeNotifier {
   // ── Connectivity change → auto-sync ────────────────────────────
 
   void _onConnectivityChanged() {
-    if (_connectivity.isOnline && _userId != null) {
-      _repository.fullSync(_userId!).then((_) {
-        _sessions = _repository.getSessions(_userId!);
+    final userId = _userId;
+    if (_connectivity.isOnline && userId != null) {
+      _repository.fullSync(userId).then((_) {
+        _sessions = _repository.getSessions(userId);
         notifyListeners();
+      }).catchError((e) {
+        // Log error but don't crash
       });
     }
   }
 
+  // ── Clear user data on logout ──────────────────────────────────
+
+  Future<void> clearUserData(String userId) async {
+    _sessions = [];
+    _progressCache.clear();
+    _lastSessionCount = 0;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
+    _authSub.cancel();
     _connectivity.removeListener(_onConnectivityChanged);
     super.dispose();
   }

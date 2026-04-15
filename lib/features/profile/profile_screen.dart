@@ -188,13 +188,17 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              passwordController.dispose();
+            },
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
               final password = passwordController.text;
               Navigator.of(ctx).pop();
+              passwordController.dispose();
               try {
                 await authService.deleteAccount(password: password);
                 if (context.mounted) context.go('/welcome');
@@ -220,7 +224,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).then((_) => passwordController.dispose());
   }
 }
 

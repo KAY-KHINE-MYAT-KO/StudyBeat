@@ -7,7 +7,7 @@ class AuthNotifier extends ChangeNotifier {
   bool _isLoggedIn;
   late final StreamSubscription<User?> _sub;
 
-  AuthNotifier() : _isLoggedIn = SessionService.isLoggedIn {
+  AuthNotifier() : _isLoggedIn = FirebaseAuth.instance.currentUser != null {
     _sub = FirebaseAuth.instance.authStateChanges().listen((user) async {
       final loggedIn = user != null;
       if (loggedIn != _isLoggedIn) {
