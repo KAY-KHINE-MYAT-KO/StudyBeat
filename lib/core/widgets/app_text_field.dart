@@ -32,6 +32,13 @@ class AppTextField extends StatefulWidget {
 class _AppTextFieldState extends State<AppTextField> {
   late bool _obscure;
 
+  String? _normalizeValidationInput(String? value) {
+    if (value == null) return null;
+    // Strip invisible zero-width and BOM characters so "empty-looking" input
+    // is validated as expected by required field validators.
+    return value.replaceAll(RegExp(r'[\u200B-\u200D\uFEFF]'), '');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -57,7 +64,9 @@ class _AppTextFieldState extends State<AppTextField> {
           controller: widget.controller,
           obscureText: _obscure,
           keyboardType: widget.keyboardType,
-          validator: widget.validator,
+          validator: widget.validator == null
+              ? null
+              : (value) => widget.validator!(_normalizeValidationInput(value)),
           textInputAction: widget.textInputAction,
           onFieldSubmitted: widget.onFieldSubmitted,
           style: const TextStyle(
