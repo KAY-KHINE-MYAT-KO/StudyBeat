@@ -66,4 +66,5 @@ class DefaultFirebaseOptions {
     projectId: 'studybeat-a13ae',
     storageBucket: 'studybeat-a13ae.firebasestorage.app',
   );
+
 }

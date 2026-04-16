@@ -1,0 +1,99 @@
+StudyBeat Privacy Policy
+Effective Date: April 17, 2026
+
+This Privacy Policy explains how StudyBeat ("the App", "we", "us", or "our") collects, uses, stores, and shares information when you use the StudyBeat mobile application.
+
+By using StudyBeat, you agree to the practices described in this Privacy Policy.
+
+1. Information We Collect
+
+StudyBeat may collect and process the following information:
+
+- Account information you provide when creating an account, such as your email address, password, and display name.
+- Study data you create in the App, such as exam names, subjects, exam dates, topics, progress, target study hours, and study session records.
+- Technical and usage-related information needed for the App to function, such as authentication status and connectivity status.
+- Locally stored app data saved on your device to support offline use.
+
+2. How We Use Your Information
+
+We use the information we collect to:
+
+- Create and manage your account.
+- Authenticate you and help keep your account secure.
+- Store, sync, and display your exams, study topics, and study session history.
+- Support offline access and restore your data when you reconnect to the internet.
+- Provide password reset and account management features.
+- Maintain, improve, and troubleshoot the App.
+
+3. Where Your Information Is Stored
+
+StudyBeat uses:
+
+- Local device storage to save certain study data on your device for offline access.
+- Firebase Authentication to manage account sign-up, sign-in, password reset, and related account features.
+- Cloud Firestore to store and sync your study data across sessions and devices when connected to the internet.
+
+These third-party services may process your information in accordance with their own privacy policies:
+
+- Google Firebase: https://firebase.google.com/support/privacy
+- Google Privacy Policy: https://policies.google.com/privacy
+
+4. Information We Share
+
+We do not sell your personal information.
+
+We may share information only as needed with service providers that help operate the App, such as Firebase Authentication and Cloud Firestore. We may also disclose information if required by law, regulation, legal process, or a valid governmental request.
+
+5. Data Retention
+
+We retain your information for as long as necessary to provide the App and related services, comply with legal obligations, resolve disputes, and enforce our agreements.
+
+Data stored locally on your device may remain until you delete the App, clear app storage, or remove the data through available in-app features. Data stored in Firebase services may remain until it is deleted by you or by us.
+
+6. Account Deletion
+
+You may request deletion of your account using the in-app account deletion feature, if available.
+
+Please note:
+
+- Deleting your account through Firebase Authentication may remove your access to the App.
+- Additional data associated with your account in connected database services should also be reviewed and deleted as part of your account deletion workflow.
+
+If you want to request full deletion of your data, contact us at: [YOUR SUPPORT EMAIL]
+
+7. Data Security
+
+We take reasonable steps to protect your information using administrative, technical, and organizational measures. However, no method of electronic storage or transmission over the internet is completely secure, and we cannot guarantee absolute security.
+
+8. Children's Privacy
+
+StudyBeat is not intended for children under 13, or under the minimum age required in your jurisdiction to consent to data processing. We do not knowingly collect personal information from children without appropriate consent. If you believe a child has provided personal information, contact us so we can review and delete it if appropriate.
+
+9. Your Rights and Choices
+
+Depending on your location, you may have rights regarding your personal information, including the right to access, correct, delete, or request a copy of your data.
+
+To make a privacy-related request, contact us at: [YOUR SUPPORT EMAIL]
+
+10. International Data Transfers
+
+Your information may be processed and stored in countries other than your own, including where our service providers operate. By using the App, you understand that your information may be transferred to and processed in those locations, subject to applicable law.
+
+11. Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. If we make material changes, we will update the "Effective Date" above and may provide additional notice within the App or by other appropriate means.
+
+12. Contact Us
+
+If you have questions about this Privacy Policy or your data, contact:
+
+[YOUR NAME OR COMPANY NAME]
+[YOUR SUPPORT EMAIL]
+[YOUR BUSINESS ADDRESS, IF APPLICABLE]
+
+Developer Notes Before Publishing:
+
+- Replace all placeholder contact details.
+- Review whether your production app uses any additional SDKs or services not present in this codebase.
+- Confirm your account deletion flow removes all user data you intend to delete from Firebase services.
+- If your app is offered in regions with specific legal requirements, consider having this policy reviewed by a qualified privacy professional.

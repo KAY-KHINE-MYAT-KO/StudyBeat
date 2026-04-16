@@ -1,0 +1,4 @@
+storePassword=199703
+keyPassword=199703
+keyAlias=upload
+storeFile=/Users/kaykhinemyatko/upload-keystore.jks
