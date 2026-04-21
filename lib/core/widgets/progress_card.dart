@@ -18,44 +18,91 @@ class ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.description_outlined,
+                    color: AppColors.accent,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTextStyles.h3),
+                      Text(
+                        title,
+                        style: AppTextStyles.h3.copyWith(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(subtitle, style: AppTextStyles.tiny),
+                      Text(
+                        subtitle,
+                        style: AppTextStyles.bodySmall.copyWith(fontSize: 13),
+                      ),
                     ],
                   ),
                 ),
-                Text(
-                  percentageText,
-                  style: AppTextStyles.h2.copyWith(
-                    fontWeight: FontWeight.w700,
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    percentageText,
+                    style: AppTextStyles.h3.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accent,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: AppColors.border,
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   AppColors.accent,
                 ),
-                minHeight: 6,
+                minHeight: 8,
               ),
             ),
           ],

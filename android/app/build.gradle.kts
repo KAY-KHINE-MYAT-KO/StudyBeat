@@ -55,13 +55,7 @@ android {
 
     buildTypes {
         release {
-            // Use the upload keystore when available; otherwise keep debug signing
-            // so local release runs still work before signing is configured.
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

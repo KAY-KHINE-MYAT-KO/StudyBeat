@@ -249,12 +249,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onChanged: (val) =>
                             setState(() => _agreedToTerms = val ?? false),
                         activeColor: AppColors.primary,
+                        checkColor: Colors.white,
+                        fillColor: WidgetStateProperty.resolveWith((states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return AppColors.primary;
+                          }
+                          return Colors.white;
+                        }),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),
                         side: const BorderSide(
-                          color: AppColors.border,
-                          width: 1.5,
+                          color: AppColors.primary,
+                          width: 1.8,
                         ),
                       ),
                     ),

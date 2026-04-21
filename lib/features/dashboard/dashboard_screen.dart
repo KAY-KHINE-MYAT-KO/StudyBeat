@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../core/widgets/secondary_button.dart';
@@ -46,66 +47,178 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Welcome Card
-                  Card(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'Hi there, ready to final your exams!',
-                        style: AppTextStyles.caption,
-                      ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppColors.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.05),
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Dashboard',
+                            style: AppTextStyles.caption.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Keep your exam prep focused',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 28,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Track how ready you are, review today’s effort, and jump back into the next study session quickly.',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontSize: 15,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Circular Progress
-                  Center(
-                    child: CircularProgressWidget(
-                      percentage: overallProgress,
-                      label: 'READY',
-                      subtitle: 'Your Overall Study Readiness',
-                    ),
+                  CircularProgressWidget(
+                    percentage: overallProgress,
+                    label: 'OVERALL READINESS',
+                    subtitle: 'Your study readiness at a glance',
+                    helperText:
+                        'This score reflects the progress you have built across your exams so far.',
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Stats Cards
+                  Text(
+                    'Today’s activity',
+                    style: AppTextStyles.h2.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'A quick summary of the work you have done today.',
+                    style: AppTextStyles.bodySmall.copyWith(fontSize: 14),
+                  ),
+
+                  const SizedBox(height: 14),
+
                   Row(
                     children: [
                       Expanded(
                         child: StatCard(
-                          label: 'Studied',
+                          label: 'Study time',
                           value: studyTime.isEmpty ? '0m' : studyTime,
+                          icon: Icons.schedule_rounded,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: StatCard(
                           label: 'Sessions',
-                          value: '$sessionCount Today',
+                          value: '$sessionCount today',
+                          icon: Icons.auto_graph_rounded,
                         ),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 24),
-
-                  // Upcoming Exams Section
-                  Text('Upcoming Exams', style: AppTextStyles.h3),
-                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Upcoming Exams',
+                        style: AppTextStyles.h2.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        '${exams.length} total',
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Tap an exam to review its progress and topics.',
+                    style: AppTextStyles.bodySmall.copyWith(fontSize: 14),
+                  ),
+                  const SizedBox(height: 14),
 
                   if (exams.isEmpty)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Center(
-                          child: Text(
-                            'No upcoming exams. Add one!',
-                            style: AppTextStyles.bodySmall,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: AppColors.accent.withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.description_outlined,
+                              color: AppColors.accent,
+                              size: 28,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No upcoming exams yet',
+                            style: AppTextStyles.h2.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add your first exam to start tracking readiness and building a study plan.',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              fontSize: 14,
+                              height: 1.45,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     )
                   else
@@ -133,7 +246,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Bottom Buttons
                   Row(
                     children: [
                       Expanded(

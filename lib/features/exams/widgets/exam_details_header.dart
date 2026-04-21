@@ -49,7 +49,7 @@ class ExamDetailsHeader extends StatelessWidget {
                   'OVERALL PROGRESS',
                   style: AppTextStyles.caption.copyWith(
                     fontSize: 12,
-                    color: const Color(0xFF2A7FF7),
+                    color: AppColors.accent,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),
@@ -58,7 +58,7 @@ class ExamDetailsHeader extends StatelessWidget {
                   '$progress%',
                   style: AppTextStyles.h2.copyWith(
                     fontSize: 18,
-                    color: const Color(0xFF2A7FF7),
+                    color: AppColors.accent,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -69,10 +69,8 @@ class ExamDetailsHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
                 value: progress / 100,
-                backgroundColor: const Color(0xFFE5E7EB),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF2A7FF7),
-                ),
+                backgroundColor: AppColors.border,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
                 minHeight: 10,
               ),
             ),

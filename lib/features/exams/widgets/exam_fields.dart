@@ -2,6 +2,49 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
+InputDecoration buildExamFieldDecoration({
+  required String hintText,
+  Widget? prefixIcon,
+  String? suffixText,
+}) {
+  return InputDecoration(
+    hintText: hintText,
+    hintStyle: AppTextStyles.body.copyWith(
+      fontSize: 16,
+      color: AppColors.textSecondary,
+    ),
+    filled: true,
+    fillColor: Colors.white,
+    prefixIcon: prefixIcon,
+    suffixText: suffixText,
+    suffixStyle: AppTextStyles.bodySmall.copyWith(
+      fontSize: 14,
+      color: AppColors.textSecondary,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.accent, width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.error),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: AppColors.error, width: 2),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  );
+}
+
 class ExamNameField extends StatelessWidget {
   final TextEditingController controller;
 
@@ -12,29 +55,22 @@ class ExamNameField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Exam Name', style: AppTextStyles.h3),
+        Text(
+          'Exam Name',
+          style: AppTextStyles.h3.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          decoration: InputDecoration(
-            hintText: 'Enter exam name',
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
-            ),
+          style: AppTextStyles.body.copyWith(fontSize: 16),
+          decoration: buildExamFieldDecoration(
+            hintText: 'e.g. Physics Midterm',
           ),
           validator: (value) {
-            if (value == null || value.isEmpty) {
+            if (value == null || value.trim().isEmpty) {
               return 'Please enter exam name';
             }
             return null;
@@ -55,29 +91,22 @@ class SubjectField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Subject', style: AppTextStyles.h3),
+        Text(
+          'Subject',
+          style: AppTextStyles.h3.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          decoration: InputDecoration(
-            hintText: 'Enter subject',
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
-            ),
+          style: AppTextStyles.body.copyWith(fontSize: 16),
+          decoration: buildExamFieldDecoration(
+            hintText: 'e.g. Physics',
           ),
           validator: (value) {
-            if (value == null || value.isEmpty) {
+            if (value == null || value.trim().isEmpty) {
               return 'Please enter subject';
             }
             return null;

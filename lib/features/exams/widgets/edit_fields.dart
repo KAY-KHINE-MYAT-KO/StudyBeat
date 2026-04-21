@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import 'exam_fields.dart';
 
 class EditFields extends StatelessWidget {
   final TextEditingController examNameController;
@@ -14,56 +15,76 @@ class EditFields extends StatelessWidget {
     required this.dateController,
   }) : super(key: key);
 
-  InputDecoration _decoration({required String hint, Widget? prefix}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppTextStyles.body.copyWith(fontSize: 16, color: AppColors.textSecondary),
-      filled: true,
-      fillColor: Colors.white,
-      prefixIcon: prefix,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Exam Name', style: AppTextStyles.h3.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        Text(
+          'Exam Name',
+          style: AppTextStyles.h3.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: examNameController,
-          style: AppTextStyles.body.copyWith(fontSize: 16, color: AppColors.textPrimary),
-          decoration: _decoration(hint: 'e.g., Physics Midterm'),
+          style: AppTextStyles.body.copyWith(fontSize: 16),
+          decoration: buildExamFieldDecoration(
+            hintText: 'e.g. Physics Midterm',
+          ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Please enter exam name';
+            }
+            return null;
+          },
         ),
         const SizedBox(height: 20),
-        Text('Subject', style: AppTextStyles.h3.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        Text(
+          'Subject',
+          style: AppTextStyles.h3.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: subjectController,
-          style: AppTextStyles.body.copyWith(fontSize: 16, color: AppColors.textPrimary),
-          decoration: _decoration(hint: 'e.g., Physics'),
+          style: AppTextStyles.body.copyWith(fontSize: 16),
+          decoration: buildExamFieldDecoration(hintText: 'e.g. Physics'),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Please enter subject';
+            }
+            return null;
+          },
         ),
         const SizedBox(height: 20),
-        Text('Date', style: AppTextStyles.h3.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        Text(
+          'Date',
+          style: AppTextStyles.h3.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: dateController,
-          style: AppTextStyles.body.copyWith(fontSize: 16, color: AppColors.textPrimary),
-          decoration: _decoration(hint: 'Feb 20, 2024', prefix: const Icon(Icons.calendar_today, color: Color(0xFF2A7FF7), size: 20)),
+          readOnly: true,
+          style: AppTextStyles.body.copyWith(fontSize: 16),
+          decoration: buildExamFieldDecoration(
+            hintText: 'Feb 20, 2024',
+            prefixIcon: const Icon(
+              Icons.calendar_today,
+              color: AppColors.accent,
+              size: 20,
+            ),
+          ),
         ),
       ],
     );

@@ -7,40 +7,85 @@ class TopicItem extends StatelessWidget {
   final TimerTopic topic;
   final VoidCallback onTap;
 
-  const TopicItem({Key? key, required this.topic, required this.onTap}) : super(key: key);
+  const TopicItem({
+    Key? key,
+    required this.topic,
+    required this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = topic.selected
+        ? AppColors.accent.withOpacity(0.10)
+        : AppColors.background;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: topic.selected ? AppColors.accent : Colors.transparent, width: 2),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
-          ),
-          child: Row(
-            children: [
-              topic.selected
-                  ? const Icon(Icons.check_circle, color: AppColors.accent, size: 24)
-                  : Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFD1D5DB), width: 2)),
-                    ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  topic.name,
-                  style: AppTextStyles.body.copyWith(fontSize: 16, color: AppColors.textPrimary),
-                ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: topic.selected
+                    ? AppColors.accent
+                    : AppColors.border,
+                width: topic.selected ? 2 : 1,
               ),
-            ],
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: topic.selected ? AppColors.accent : Colors.white,
+                    border: Border.all(
+                      color: topic.selected
+                          ? AppColors.accent
+                          : AppColors.textLight,
+                      width: 2,
+                    ),
+                  ),
+                  child: topic.selected
+                      ? const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 16,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    topic.name,
+                    style: AppTextStyles.body.copyWith(
+                      fontSize: 16,
+                      fontWeight: topic.selected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: topic.selected
+                      ? AppColors.accent
+                      : AppColors.textLight,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/secondary_button.dart';
 import '../../core/providers/exam_provider.dart';
 import '../../core/models/exam.dart';
 import 'widgets/edit_fields.dart';
 import 'widgets/edit_topics.dart';
-import 'widgets/exams_bottom_nav.dart';
+import 'widgets/exam_fields.dart';
 
 class EditExamScreen extends StatefulWidget {
   final String examId;
@@ -20,6 +22,7 @@ class EditExamScreen extends StatefulWidget {
 }
 
 class _EditExamScreenState extends State<EditExamScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _examNameController;
   late TextEditingController _subjectController;
   late TextEditingController _dateController;
@@ -27,6 +30,26 @@ class _EditExamScreenState extends State<EditExamScreen> {
   late List<TextEditingController> _topicControllers;
   Exam? _exam;
   bool _isSaving = false;
+
+  Widget _buildSectionCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 
   @override
   void initState() {
@@ -68,6 +91,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
 
   Future<void> _handleSave() async {
     if (_exam == null) return;
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
@@ -145,7 +169,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFE5E7EB), height: 1),
+          child: Container(color: AppColors.border, height: 1),
         ),
       ),
       body: Container(
@@ -153,107 +177,123 @@ class _EditExamScreenState extends State<EditExamScreen> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                EditFields(
-                  examNameController: _examNameController,
-                  subjectController: _subjectController,
-                  dateController: _dateController,
-                ),
-                const SizedBox(height: 24),
-                EditTopics(
-                  topicControllers: _topicControllers,
-                  onAddTopic: _addTopic,
-                ),
-
-                const SizedBox(height: 16),
-                Text(
-                  'Target Study Hours',
-                  style: AppTextStyles.h2.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _targetHoursController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'e.g. 10',
-                    suffixText: 'hours',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                _isSaving
-                    ? const Center(child: CircularProgressIndicator())
-                    : SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _handleSave,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2A7FF7),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 4,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            'Save Changes',
-                            style: AppTextStyles.button.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                            'Edit exam',
+                            style: AppTextStyles.caption.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.accent,
                             ),
                           ),
                         ),
-                      ),
-
-                const SizedBox(height: 12),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () => context.pop(),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF2A7FF7),
-                      side: const BorderSide(
-                        color: Color(0xFF2A7FF7),
-                        width: 2,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: AppTextStyles.button.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF2A7FF7),
-                      ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Update your exam plan',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 26,
+                            height: 1.15,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Refine the exam details, topics, and study target so your preparation stays accurate.',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontSize: 15,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 80),
-              ],
+                  const SizedBox(height: 20),
+                  _buildSectionCard(
+                    child: EditFields(
+                      examNameController: _examNameController,
+                      subjectController: _subjectController,
+                      dateController: _dateController,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        EditTopics(
+                          topicControllers: _topicControllers,
+                          onAddTopic: _addTopic,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Target Study Hours',
+                          style: AppTextStyles.h3.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Adjust the time you want to dedicate before the exam.',
+                          style: AppTextStyles.bodySmall.copyWith(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _targetHoursController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: buildExamFieldDecoration(
+                            hintText: 'e.g. 10',
+                            suffixText: 'hours',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Enter target hours';
+                            }
+                            final hours = double.tryParse(value.trim());
+                            if (hours == null || hours <= 0) {
+                              return 'Enter a valid number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _isSaving
+                      ? const Center(child: CircularProgressIndicator())
+                      : PrimaryButton(
+                          text: 'Save Changes',
+                          onPressed: _handleSave,
+                        ),
+                  const SizedBox(height: 12),
+                  SecondaryButton(text: 'Cancel', onPressed: () => context.pop()),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),
       ),
-      bottomNavigationBar: const ExamsBottomNav(),
     );
   }
 }
