@@ -7,7 +7,6 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/progress_card.dart';
 import '../../core/providers/exam_provider.dart';
 import '../../core/providers/study_session_provider.dart';
-import 'widgets/exams_bottom_nav.dart';
 
 class ExamsScreen extends StatefulWidget {
   const ExamsScreen({super.key});
@@ -271,7 +270,6 @@ class _ExamsScreenState extends State<ExamsScreen> {
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, size: 28, color: Colors.white),
       ),
-      bottomNavigationBar: const ExamsBottomNav(),
     );
   }
 }
